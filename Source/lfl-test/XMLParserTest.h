@@ -1,15 +1,5 @@
 #pragma once
 
-void TEST_PARSE_PLAYER();
-void TEST_PARSE_SUBSTITUTION();
-void TEST_PARSE_PENALTY();
-void TEST_PARSE_GOAL();
-void TEST_PARSE_JUDGE();
+#include "XMLParser/Parser.h"
 
-void TEST_XML_PARSER() {
-    TEST_PARSE_PLAYER();
-    TEST_PARSE_SUBSTITUTION();
-    TEST_PARSE_PENALTY();
-    TEST_PARSE_GOAL();
-    TEST_PARSE_JUDGE();
-}
+void TEST_XML_PARSER();
