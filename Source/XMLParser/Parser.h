@@ -83,13 +83,13 @@ namespace LFL::XMLParser {
                 Team(rapidxml::xml_node<> * node);
         };
         class Game : public ParsableObject {
-            private:
+            public:
                 std::string date;
                 int attendance;
                 std::string place;
                 std::vector<Team> teams;
                 std::vector<Referee> referees;
-            public:
+
                 Game(rapidxml::xml_node<> * node);
         };
 

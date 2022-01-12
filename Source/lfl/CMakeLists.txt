@@ -6,7 +6,7 @@ source_group("Source" FILES ${sources})
 
 add_executable(lfl ${sources})
 
-target_link_libraries(lfl)
+target_link_libraries(lfl XMLParser Database)
 
 add_custom_command(TARGET lfl 
                    POST_BUILD

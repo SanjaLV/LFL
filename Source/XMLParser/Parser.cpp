@@ -59,7 +59,6 @@ namespace LFL::XMLParser {
 }
 
 namespace LFL::XMLParser::Data {
-    const int MAIN_TIME = 60 * 60;
 
     static int parse_time_from_string(const std::string& str) {
         auto div = str.find(':');
@@ -146,8 +145,9 @@ namespace LFL::XMLParser::Data {
             subsitutions = parse_multiple_primitives<Substitution>(subnode, "Maina");
         }
         if (auto subnode = node->first_node("Pamatsastavs")) {
-            /* todo */
-            (void) subnode;
+            for (auto * son = subnode->first_node("Speletajs"); son; son = son->next_sibling("Speletajs")) {
+                starting_players.push_back(std::stoi(parse_node_attributes(son).at("Nr")));
+            }
         }
         else {
             std::cerr << "XML is corrupted, there is no Pamatsastavs subnode!";

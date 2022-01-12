@@ -10,6 +10,8 @@ if (MSVC)
     message(FATAL_ERROR "Please use mingw" )
 endif()
 
+find_package (SQLite3 REQUIRED)
+
 set(CMAKE_CXX_FLAGS "-O2 -Wall -Wextra -Wshadow -Wpedantic -Werror -fmax-errors=3")
 
 add_subdirectory(ThirdParty)
