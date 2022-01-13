@@ -9,7 +9,14 @@ source_group("Source" FILES ${sources})
 add_executable(lfl-test ${sources})
 
 target_link_libraries(lfl-test XMLParser)
-target_compile_options(lfl-test PRIVATE "-DLFL_TEST=1 -g -fsanitize=undefined,address")
+
+if (MSVC)
+    # Windows does not have asans/ubsan
+else()
+    target_compile_options(lfl-test PRIVATE "-g3")
+    target_compile_options(lfl-test PRIVATE "-fsanitize=undefined,address")
+    target_link_options(lfl-test PRIVATE "-fsanitize=undefined,address")
+endif()
 
 add_custom_command(TARGET lfl-test 
                    POST_BUILD
