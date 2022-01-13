@@ -6,7 +6,7 @@ LFL - Lielās Futbola Līgas.
 
 Run cmake/make from root directory
 
-! System sqlite3 is required
+NOTE: System sqlite3 is required
 
 ```bash
 cmake -B Build
@@ -44,8 +44,8 @@ Options:
 
 Attention lfl processes command in a chain so it possible so
 
-!! --max-player will NOT change previous --generation behavior
-!v It is possible to chain multiple commands together like:
+WARRNING: --max-player will NOT change previous --generation behavior
+NOTE: It is possible to chain multiple commands together like:
 ```bash
 ./lfl --max-player 25 --dir BPL_winter --generate bpl_half.html \
       --dir  BPL_summer --generate bpl.html
