@@ -176,8 +176,7 @@ namespace LFL::Database {
         team1.goals_again += team2_data.goals.size();
 
         // Finished in main time, or had overtimes?
-        const int MAIN_TIME = 60 * 60;        // 60m
-        const int OVERTIME_LENGTH = 15 * 60;  // 15m
+        const int MAIN_TIME = 60 * 60;  // 60m
 
         int last_goal = 0;
         for (const auto &x : team1_data.goals) {
@@ -188,18 +187,8 @@ namespace LFL::Database {
         }
         bool overtime = last_goal > MAIN_TIME;
 
-        // Calculate match length it is 60m or in case of OT
-        // last_goal rounded up to 15m
-        int match_lenght = MAIN_TIME;
-        if (overtime) {
-            if (last_goal % OVERTIME_LENGTH != 0) {
-                match_lenght = last_goal + (OVERTIME_LENGTH -
-                                            (last_goal % OVERTIME_LENGTH));
-            }
-            else {
-                match_lenght = last_goal;
-            }
-        }
+        // Overtime end at the exact moment someone score goal
+        int match_lenght = std::max(MAIN_TIME, last_goal);
 
         if (team1_data.goals.size() > team2_data.goals.size()) {
             // team1 won
