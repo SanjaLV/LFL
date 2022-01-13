@@ -508,7 +508,8 @@ namespace LFL::Database {
 )""";
     }
 
-    void generate_html_output(const std::string &filename)
+    void generate_html_output(const std::string &filename,
+                              size_t truncate_after)
     {
         double start_time = clock();
 
@@ -519,6 +520,16 @@ namespace LFL::Database {
 
         std::cout << "Processing " << teams.size() << " teams!" << std::endl;
         std::cout << "And " << players.size() << " players!" << std::endl;
+
+        if (truncate_after == 0u or truncate_after >= players.size()) {
+            truncate_after = static_cast<int>(players.size());
+            std::cout << "Creating full tables with " << truncate_after
+                      << " rows!" << std::endl;
+        }
+        else {
+            std::cout << "Truncating tables after " << truncate_after
+                      << " rows!" << std::endl;
+        }
 
         std::ofstream ofs(filename);
 
@@ -574,7 +585,7 @@ namespace LFL::Database {
                 return false;
             });
 
-            for (size_t i = 0; i < players.size(); i++) {
+            for (size_t i = 0; i < truncate_after; i++) {
                 const auto &p = players[i];
                 ofs << "\t<tr>\n";
                 ofs << "\t\t<th scope=\"row\">" << (i + 1) << "</th>\n";
@@ -603,7 +614,7 @@ namespace LFL::Database {
                 return false;
             });
 
-            for (size_t i = 0; i < players.size(); i++) {
+            for (size_t i = 0; i < truncate_after; i++) {
                 const auto &p = players[i];
                 ofs << "\t<tr>\n";
                 ofs << "\t\t<th scope=\"row\">" << (i + 1) << "</th>\n";
@@ -638,7 +649,8 @@ namespace LFL::Database {
                 return false;
             });
 
-            for (size_t i = 0; i < goalies.size(); i++) {
+            for (size_t i = 0; i < std::min(truncate_after, goalies.size());
+                 i++) {
                 const auto &p = goalies[i];
                 ofs << "\t<tr>\n";
                 ofs << "\t\t<th scope=\"row\">" << (i + 1) << "</th>\n";
@@ -664,7 +676,7 @@ namespace LFL::Database {
                 return false;
             });
 
-            for (size_t i = 0; i < players.size(); i++) {
+            for (size_t i = 0; i < truncate_after; i++) {
                 const auto &p = players[i];
                 ofs << "\t<tr>\n";
                 ofs << "\t\t<th scope=\"row\">" << (i + 1) << "</th>\n";

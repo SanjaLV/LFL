@@ -1,1 +1,5 @@
 Build/**
+html/**
+latex/**
+CMakeFiles/**
+CMakeCache.txt

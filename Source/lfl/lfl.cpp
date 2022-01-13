@@ -26,12 +26,14 @@ static void help()
         std::make_pair("--single <file>", "Process single XML file."),
         std::make_pair("--dir <directory>",
                        "Process all XML files in given directory."),
-        std::make_pair("--generate <file>", "Generate statistics to give file."),
-        std::make_pair("--max-player <N>", "Truncate generated tables after N-th player."),
+        std::make_pair("--generate <file>",
+                       "Generate statistics to given file."),
+        std::make_pair("--max-player <N>",
+                       "Truncate generated tables after N-th player."),
     };
 
     for (auto &o : options) {
-        while (o.first.size() < 16)
+        while (o.first.size() < 20)
             o.first += ' ';
         std::cout << "\t" << o.first << o.second << "\n";
     }
@@ -39,7 +41,7 @@ static void help()
 
 int main(int argc, char *argv[])
 {
-    if (argc <= 1 or argc > 3) {
+    if (argc <= 1) {
         help();
         return 1;
     }
@@ -49,7 +51,7 @@ int main(int argc, char *argv[])
         args.push_back(argv[i]);
     }
 
-    int truncate_after = 0;
+    size_t truncate_after = 0;
 
     for (size_t i = 0; i < args.size(); i++) {
         if (args[i] == "--help") {
@@ -84,10 +86,10 @@ int main(int argc, char *argv[])
             }  // dir iterator
         }
         else if (args[i] == "--generate") {
-            LFL::Database::generate_html_output(next_token);
+            LFL::Database::generate_html_output(next_token, truncate_after);
         }
         else if (args[i] == "--max-player") {
-            truncate_after = std::stoi(next_token);
+            truncate_after = std::stoul(next_token);
         }
         else {
             std::cout << "Unknown option '" << args[i] << "';" << std::endl;

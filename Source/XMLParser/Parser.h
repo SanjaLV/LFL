@@ -12,12 +12,18 @@ namespace LFL::XMLParser {
 
     namespace Data {
         enum PlayerType { ATTACKER = 0, DEFENDER = 1, GOALKEEPER = 2 };
+        /// Base XML parsable object
         class ParsableBaseObject {
         };
+        /// Primitive parsable object (in the sense that XML node, does not have
+        /// any child notes, so we can construct it just from nodes attributes)
         class PrimitiveParsableObject : public ParsableBaseObject {
         };
+        /// Opposite to PrimitiveParsableObject, complex object with sub-nodes,
+        /// that requires to traverse XML tree.
         class ParsableObject : public ParsableBaseObject {
         };
+        /// Base class for all human classes.
         class Person : public PrimitiveParsableObject {
         public:
             std::string name;
@@ -27,6 +33,7 @@ namespace LFL::XMLParser {
         };
         class Referee : public Person {
         public:
+            /// Special main referee that is VT XML node
             bool main = false;
             using Person::Person;
             void set_main(bool is_main) { main = is_main; }
@@ -38,8 +45,11 @@ namespace LFL::XMLParser {
 
             Player(const StringsMap &attr);
         };
+        /// Base class for almost all timed events
+        /// the only exception is non-primitive Goal class.
         class TimedEvent : public PrimitiveParsableObject {
         public:
+            /// In seconds from start of the match
             int time;
 
             TimedEvent(const StringsMap &attr);
@@ -90,6 +100,9 @@ namespace LFL::XMLParser {
 
     }  // namespace Data
 
+    /// Returns XML node attributes as std::string dictionary (map).
     StringsMap parse_node_attributes(rapidxml::xml_node<> *node);
+    /// Traverses and parse all XML tree
+    /// \return Parsed and ready to consume LFL::Data::Game objects
     Data::Game parse_game_file(const std::string &filename);
 }  // namespace LFL::XMLParser
