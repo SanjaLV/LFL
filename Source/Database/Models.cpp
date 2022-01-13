@@ -2,6 +2,7 @@
 
 #include <set>
 #include <algorithm>
+#include <fstream>
 
 namespace LFL::Database {
     
@@ -350,4 +351,333 @@ namespace LFL::Database {
 
     }
 
+    static std::string generate_header() {
+        return R"XXX(
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>LFL statistics</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="btn btn-primary" href="#club">Club table</a>
+    <a class="btn btn-primary" href="#best_striker">Best stiker</a>
+    <a class="btn btn-primary" href="#mvp">MVP</a>
+    <a class="btn btn-primary" href="#goalkeeper">Best goalkeeper</a>
+    <a class="btn btn-primary" href="#hard_work">Most hardworking</a>
+    <a class="btn btn-primary" href="#popular">Most popular club</a>
+</nav>
+)XXX";
+    }
+
+    static std::string generate_footer() {
+        return R"XXX(
+</body>
+</html>
+)XXX";
+    }
+    
+    static std::string main_table_header() {
+        return R"""(
+<table class="table table-hover table-responsive table-sm" id="club">
+  <thead>
+    <tr>
+      <th scope="col">Position</th>
+      <th scope="col">Club</th>
+      <th scope="col">Played</th>
+      <th scope="col">Won</th>
+      <th scope="col">Lost</th>
+      <th scope="col">Won (OT)</th>
+      <th scope="col">Lost (OT)</th>
+      <th scope="col">GF</th>
+      <th scope="col">GA</th>
+      <th scope="col">GD</th>
+      <th scope="col">Points</th>
+    </tr>
+  </thead>
+  <tbody>
+)""";
+    }
+
+    static std::string best_striker_header() {
+        return R"""(
+<table class="table table-hover table-responsive table-sm" id="best_striker">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Player</th>
+      <th scope="col">Club</th>
+      <th scope="col">Points</th>
+      <th scope="col">Goals(penalty)</th>
+      <th scope="col">Assists</th>
+      <th scope="col">Games played</th>
+    </tr>
+  </thead>
+  <tbody>
+)""";
+    }
+
+    static std::string best_scoring_header() {
+        return R"""(
+<table class="table table-hover table-responsive table-sm" id="mvp">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Player</th>
+      <th scope="col">Club</th>
+      <th scope="col">Points/h</th>
+      <th scope="col">Points</th>
+      <th scope="col">Games played</th>
+      <th scope="col">Minutes on the field</th>
+    </tr>
+  </thead>
+  <tbody>
+)""";
+    }
+
+    static std::string best_goalkeeper_header() {
+        return R"""(
+<table class="table table-hover table-responsive table-sm" id="goalkeeper">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Player</th>
+      <th scope="col">Club</th>
+      <th scope="col">Goal agains/h</th>
+      <th scope="col">Goal agains</th>
+      <th scope="col">Games played</th>
+      <th scope="col">Minutes on the field</th>
+    </tr>
+  </thead>
+  <tbody>
+)""";
+    }
+
+    static std::string best_hardworking_header() {
+        return R"""(
+<table class="table table-hover table-responsive table-sm" id="hard_work">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Player</th>
+      <th scope="col">Club</th>
+      <th scope="col">Minutes on the field</th>
+    </tr>
+  </thead>
+  <tbody>
+)""";
+    }
+
+    static std::string most_popular_club_header() {
+        return R"""(
+<table class="table table-hover table-responsive table-sm" id="popular">
+  <thead>
+    <tr>
+      <th scope="col">Position</th>
+      <th scope="col">Club</th>
+      <th scope="col">Avg attendances</th>
+    </tr>
+  </thead>
+  <tbody>
+)""";
+    }
+
+
+    void generate_html_output(const std::string& filename) {
+        double start_time = clock();
+
+        auto storage = create_database_connection();
+
+        auto teams = storage.get_all<MTeam>();
+        auto players = storage.get_all<MPlayer>();
+
+        std::cout << "Processing " << teams.size() << " teams!" << std::endl;
+        std::cout << "And " << players.size() << " players!" << std::endl;
+
+        std::ofstream ofs(filename);
+
+        ofs << generate_header();
+
+        std::map<int, std::string> team_names;
+        for (const auto c : teams) {
+            team_names[c.id] = c.name;
+        }
+
+        { // club table
+            ofs << main_table_header();
+
+            // Sort by (score, gd)
+            std::sort(teams.begin(), teams.end(), [](MTeam a, MTeam b) {
+                if (a.points != b.points) return a.points > b.points;
+                if (a.gd() != b.gd()) return a.gd() > b.gd();
+                return false;
+            });
+
+            for (size_t i = 0; i < teams.size(); i++) {
+                const auto& t = teams[i];
+                ofs << "\t<tr>\n";
+                ofs << "\t\t<th scope=\"row\">" << (i + 1) << "</th>\n";
+                ofs << "\t\t<td>" << t.name << "</td>\n";
+                ofs << "\t\t<td>" << t.games << "</td>\n";
+                ofs << "\t\t<td>" << t.wins << "</td>\n";
+                ofs << "\t\t<td>" << t.loses << "</td>\n";
+                ofs << "\t\t<td>" << t.wins_in_overtime << "</td>\n";
+                ofs << "\t\t<td>" << t.loses_in_overtime << "</td>\n";
+                ofs << "\t\t<td>" << t.goals_for << "</td>\n";
+                ofs << "\t\t<td>" << t.goals_again << "</td>\n";
+                ofs << "\t\t<td>" << t.gd() << "</td>\n";
+                ofs << "\t\t<td>" << t.points << "</td>\n";
+                ofs << "\t</tr>\n";
+            }
+            ofs << "</tbody>\n";
+            ofs << "</table>\n";
+        }
+        
+        { // best striker (points)
+            ofs <<  best_striker_header();
+            // Sort by (points, goals, p/game)
+            std::sort(players.begin(), players.end(), [](MPlayer a, MPlayer b) {
+                if (a.points() != b.points()) return a.points() > b.points();
+                if (a.sum_goals() != b.sum_goals()) return a.sum_goals() > b.sum_goals();
+                if (a.point_per_h() != b.point_per_h()) return a.point_per_h() > b.point_per_h();
+                return false;
+            });
+
+            for (size_t i = 0; i < players.size(); i++) {
+                const auto& p = players[i];
+                ofs << "\t<tr>\n";
+                ofs << "\t\t<th scope=\"row\">" << (i + 1) << "</th>\n";
+                ofs << "\t\t<td>" << p.name << " " << p.surname << " (" << p.number << ")</td>\n";
+                ofs << "\t\t<td>" << team_names.at(p.team_id) << "</td>\n";
+                ofs << "\t\t<td>" << p.points() << "</td>\n";
+                ofs << "\t\t<td>" << p.sum_goals() << "(" << p.goal_from_penalty << ")</td>\n";
+                ofs << "\t\t<td>" << p.assists << "</td>\n";
+                ofs << "\t\t<td>" << p.games << "</td>\n";
+                ofs << "\t</tr>\n";
+            }
+
+            ofs << "</tbody>\n";
+            ofs << "</table>\n";
+        }
+        { // MVP (point/h)
+            ofs <<  best_scoring_header();
+            // Sort by (points, goals, p/game)
+            std::sort(players.begin(), players.end(), [](MPlayer a, MPlayer b) {
+                if (a.point_per_h() != b.point_per_h()) return a.point_per_h() > b.point_per_h();
+                if (a.seconds_on_field != b.seconds_on_field) return a.seconds_on_field > b.seconds_on_field;
+                return false;
+            });
+
+            for (size_t i = 0; i < players.size(); i++) {
+                const auto& p = players[i];
+                ofs << "\t<tr>\n";
+                ofs << "\t\t<th scope=\"row\">" << (i + 1) << "</th>\n";
+                ofs << "\t\t<td>" << p.name << " " << p.surname << " (" << p.number << ")</td>\n";
+                ofs << "\t\t<td>" << team_names.at(p.team_id) << "</td>\n";
+                ofs << "\t\t<td>" << p.point_per_h() << "</td>\n";
+                ofs << "\t\t<td>" << p.points() << "</td>\n";
+                ofs << "\t\t<td>" << p.games << "</td>\n";
+                ofs << "\t\t<td>" << p.minutes_on_field() << "</td>\n";
+                ofs << "\t</tr>\n";
+            }
+
+
+            ofs << "</tbody>\n";
+            ofs << "</table>\n";
+        }
+        
+        { // best goalie
+            ofs << best_goalkeeper_header();
+            std::vector<MPlayer> goalies;
+            for (const auto& p : players) {
+                if (p.p_type == XMLParser::Data::PlayerType::GOALKEEPER) {
+                    goalies.push_back(p);
+                }
+            }
+
+            std::sort(goalies.begin(), goalies.end(), [](MPlayer a, MPlayer b) {
+                if (a.gaa_per_h() != b.gaa_per_h()) return a.gaa_per_h() < b.gaa_per_h();
+                if (a.seconds_on_field != b.seconds_on_field) return a.seconds_on_field > b.seconds_on_field;
+                return false;
+            });
+
+            for (size_t i = 0; i < goalies.size(); i++) {
+                const auto& p = goalies[i];
+                ofs << "\t<tr>\n";
+                ofs << "\t\t<th scope=\"row\">" << (i + 1) << "</th>\n";
+                ofs << "\t\t<td>" << p.name << " " << p.surname << " (" << p.number << ")</td>\n";
+                ofs << "\t\t<td>" << team_names.at(p.team_id) << "</td>\n";
+                ofs << "\t\t<td>" << p.gaa_per_h() << "</td>\n";
+                ofs << "\t\t<td>" << p.goalkeper_got_scores << "</td>\n";
+                ofs << "\t\t<td>" << p.games << "</td>\n";
+                ofs << "\t\t<td>" << p.minutes_on_field() << "</td>\n";
+                ofs << "\t</tr>\n";
+            }
+            ofs << "</tbody>\n";
+            ofs << "</table>\n";
+        }
+
+        { // Hard working (seconds player)
+            ofs <<  best_hardworking_header();
+            // Sort by (seconds)
+            std::sort(players.begin(), players.end(), [](MPlayer a, MPlayer b) {
+                if (a.seconds_on_field != b.seconds_on_field) return a.seconds_on_field > b.seconds_on_field;
+                return false;
+            });
+
+            for (size_t i = 0; i < players.size(); i++) {
+                const auto& p = players[i];
+                ofs << "\t<tr>\n";
+                ofs << "\t\t<th scope=\"row\">" << (i + 1) << "</th>\n";
+                ofs << "\t\t<td>" << p.name << " " << p.surname << " (" << p.number << ")</td>\n";
+                ofs << "\t\t<td>" << team_names.at(p.team_id) << "</td>\n";
+                ofs << "\t\t<td>" << p.minutes_on_field() << "</td>\n";
+                ofs << "\t</tr>\n";
+            }
+
+            ofs << "</tbody>\n";
+            ofs << "</table>\n";
+        }
+        
+        
+        { // Most popular club
+            ofs << most_popular_club_header();
+
+            // Sort by (avg attendances)
+            std::sort(teams.begin(), teams.end(), [](MTeam a, MTeam b) {
+                if (a.games == b.games) {
+                        if (a.sum_of_attendance != b.sum_of_attendance) return a.points > b.points;
+                        return false;
+                }
+                else {
+                    return a.sum_of_attendance * 1LL * b.games > b.sum_of_attendance * 1LL * a.games;
+                }
+            });
+
+            for (size_t i = 0; i < teams.size(); i++) {
+                const auto& t = teams[i];
+                ofs << "\t<tr>\n";
+                ofs << "\t\t<th scope=\"row\">" << (i + 1) << "</th>\n";
+                ofs << "\t\t<td>" << t.name << "</td>\n";
+                ofs << "\t\t<td>" << t.avg_attendances() << "</td>\n";
+                ofs << "\t</tr>\n";
+            }
+            ofs << "</tbody>\n";
+            ofs << "</table>\n";
+        }
+        
+        double took_to_generate = (clock() - start_time) / CLOCKS_PER_SEC * 1000;
+        std::cout << "generated in " << took_to_generate << " ms" << std::endl;
+        ofs << "<div>Generation took aprox. " << took_to_generate << " ms.</div>\n";
+        ofs << "<div>LFL 2022 (c)Aleksandrs Zajakins</div>\n";
+
+        ofs << generate_footer();
+        ofs.close();
+    }
 }

@@ -77,7 +77,7 @@ int main(int argc, char * argv[]) {
             
         }
         else if (args[i] == "--generate") {
-            std::cout << "TODO!" << std::endl;
+            LFL::Database::generate_html_output(next_token);
         }
         else {
             std::cout << "Unknown option '" << args[i] << "';" << std::endl;

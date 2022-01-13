@@ -27,6 +27,25 @@ namespace LFL::Database {
 
         int goalkeper_got_scores; // to calc avg/game
                                   // and avg/minutes_on_field
+        
+        int points() const {
+            return goals + assists + goal_from_penalty;
+        }
+        int sum_goals() const {
+            return goals + goal_from_penalty;
+        }
+        double point_per_h() const {
+            if (seconds_on_field == 0) return 0;
+            else return static_cast<double>(points()) / seconds_on_field * 60 * 60;
+        }
+        double minutes_on_field() const {
+            return seconds_on_field / 60.0;
+        }
+
+        double gaa_per_h() const {
+            if (seconds_on_field == 0) return 0;
+            else return static_cast<double>(goalkeper_got_scores) / seconds_on_field * 60 * 60;
+        }
     };
 
     struct MTeam {
@@ -44,6 +63,15 @@ namespace LFL::Database {
         int goals_again;
 
         int sum_of_attendance; // to calculate avg attendance
+
+        int gd() const {
+            return goals_for - goals_again;
+        }
+
+        double avg_attendances() const {
+            if (games == 0) return 0;
+            return static_cast<double>(sum_of_attendance) / games;
+        }
     };
 
     struct MMatchHistory {
@@ -55,5 +83,7 @@ namespace LFL::Database {
 
     auto create_database_connection(); 
     void process_game_info(const LFL::XMLParser::Data::Game& game);
+    void generate_html_output(const std::string& filename);
+    
 }
 
