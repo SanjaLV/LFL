@@ -1,7 +1,7 @@
 #include "XMLParserTest.h"
 
-int main() {
-
+int main()
+{
     TEST_XML_PARSER();
 
     return 0;
